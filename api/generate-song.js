@@ -14,17 +14,12 @@ export default async function handler(req, res) {
         method: "POST",
         headers: {
           "xi-api-key": process.env.ELEVENLABS_API_KEY,
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "Accept": "audio/mpeg"
         },
         body: JSON.stringify({
-          text: `Sing an emotional Afrobeats song for ${name}. ${prompt}. Use Nigerian accent, musical melody, and expressive singing style.`,
-          model_id: "eleven_multilingual_v2",
-          voice_settings: {
-            stability: 0.35,
-            similarity_boost: 0.85,
-            style: 0.9,
-            use_speaker_boost: true
-          }
+          text: `Sing an emotional Afrobeats song for ${name}. ${prompt}. Use Nigerian accent.`,
+          model_id: "eleven_multilingual_v2"
         })
       }
     );
@@ -37,4 +32,5 @@ export default async function handler(req, res) {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+}
 }
