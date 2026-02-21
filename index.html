@@ -1,3 +1,9 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
 
 body {
@@ -17,113 +23,136 @@ body {
 }
 
 .container {
-
     background: rgba(10,15,30,0.65);
-
     padding: 40px;
-
     border-radius: 20px;
-
     width: 380px;
-
     text-align: center;
-
     backdrop-filter: blur(25px);
-
     box-shadow:
-
     0 0 60px rgba(255,0,200,0.25),
-
     0 0 120px rgba(50,50,255,0.15);
-
 }
 
 .logo {
-
     font-size: 34px;
-
     font-weight: bold;
-
     margin-bottom: 10px;
-
 }
 
 .subtitle {
-
     opacity: 0.85;
-
     margin-bottom: 25px;
-
 }
 
 input {
-
     width: 100%;
-
     padding: 14px;
-
     margin-bottom: 15px;
-
     border-radius: 12px;
-
     border: none;
-
     font-size: 16px;
-
-    background: rgba(255,255,255,0.9);
-
 }
 
 button {
-
     width: 100%;
-
     padding: 15px;
-
     border: none;
-
     border-radius: 14px;
-
     font-size: 18px;
-
     font-weight: bold;
-
     background: linear-gradient(90deg,#ff00cc,#7b00ff,#3333ff);
-
     color: white;
-
     cursor: pointer;
-
-    box-shadow:
-
-    0 0 20px #ff00cc88,
-
-    0 0 40px #3333ff66;
-
-}
-
-button:hover {
-
-    transform: scale(1.03);
-
-}
-
-audio {
-
-    margin-top: 20px;
-
-    width: 100%;
-
-    display: none;
-
 }
 
 .status {
-
     margin-top: 15px;
+}
 
-    opacity: 0.9;
-
+audio {
+    margin-top: 20px;
+    width: 100%;
+    display: none;
 }
 
 </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="logo">Sing It ✨</div>
+
+<div class="subtitle">
+Create Nigerian AI songs with your name
+</div>
+
+<input id="name" placeholder="Your name">
+
+<input id="prompt" placeholder="Song description">
+
+<button onclick="createSong()">Create Song</button>
+
+<div class="status" id="status"></div>
+
+<audio id="player" controls></audio>
+
+</div>
+
+<script>
+
+async function createSong() {
+
+const name = document.getElementById("name").value;
+const prompt = document.getElementById("prompt").value;
+
+const status = document.getElementById("status");
+status.innerText = "Creating song...";
+
+const res = await fetch("/api/generate-song", {
+
+method: "POST",
+
+headers: {
+"Content-Type": "application/json"
+},
+
+body: JSON.stringify({
+name,
+prompt
+})
+
+});
+
+if (!res.ok) {
+
+status.innerText = "Error creating song";
+return;
+
+}
+
+const buffer = await res.arrayBuffer();
+
+const blob = new Blob([buffer], {type:"audio/mpeg"});
+
+const url = URL.createObjectURL(blob);
+
+const player = document.getElementById("player");
+
+player.src = url;
+
+player.style.display = "block";
+
+player.play();
+
+status.innerText = "Song created successfully";
+
+}
+
+</script>
+
+</body>
+</html>
