@@ -45,12 +45,21 @@ async function createSong() {
   }
 
   const arrayBuffer = await res.arrayBuffer();
+
 const blob = new Blob([arrayBuffer], { type: "audio/mpeg" });
+
 const url = URL.createObjectURL(blob);
-  const player = document.getElementById("player");
-  player.src = url;
-  player.style.display = "block";
-  player.play();
+
+const player = document.getElementById("player");
+
+player.pause();
+player.src = "";
+player.load();
+
+player.src = url;
+player.style.display = "block";
+
+await player.play().catch(() => {});
 }
 </script>
 
