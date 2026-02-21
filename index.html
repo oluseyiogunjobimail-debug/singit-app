@@ -1,14 +1,87 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Sing It</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sing It</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+  font-family: Arial;
+  text-align: center;
+  padding: 40px;
+  background: linear-gradient(135deg, #0f2027, #2c5364);
+  color: white;
+}
+
+button {
+  padding: 15px 30px;
+  font-size: 18px;
+  border-radius: 10px;
+  border: none;
+  background: gold;
+  color: black;
+  font-weight: bold;
+}
+
+input, textarea {
+  padding: 10px;
+  width: 80%;
+  margin: 10px;
+  border-radius: 8px;
+  border: none;
+}
+
+audio {
+  margin-top: 20px;
+}
+</style>
+
 </head>
-<body style="font-family: Arial; text-align: center; padding-top: 50px;">
-  <h1>Sing It</h1>
-  <p>African AI Music Generation Platform</p>
-  <button style="padding: 15px 30px; font-size: 18px;">
-    Create Song
-  </button>
+
+<body>
+
+<h1>Sing It</h1>
+<p>Create Nigerian AI songs with your name</p>
+
+<input id="name" placeholder="Enter your name (e.g. Olu)" />
+
+<textarea id="prompt" placeholder="Enter message or story"></textarea>
+
+<br><br>
+
+<button onclick="generateSong()">Create Song</button>
+
+<br>
+
+<audio id="player" controls></audio>
+
+<script>
+
+async function generateSong() {
+
+const name = document.getElementById("name").value;
+const prompt = document.getElementById("prompt").value;
+
+const response = await fetch("/api/generate-song", {
+method: "POST",
+headers: {
+"Content-Type": "application/json"
+},
+body: JSON.stringify({
+name: name,
+prompt: prompt
+})
+});
+
+const blob = await response.blob();
+
+const url = URL.createObjectURL(blob);
+
+document.getElementById("player").src = url;
+
+}
+
+</script>
+
 </body>
 </html>
