@@ -1,6 +1,13 @@
 export default async function handler(req, res) {
   try {
-    const { prompt, name } = req.body;
+    // Fix: manually parse body if needed
+    let body = req.body;
+
+    if (!body || typeof body === "string") {
+      body = JSON.parse(body || "{}");
+    }
+
+    const { prompt, name } = body;
 
     if (!prompt || !name) {
       return res.status(400).json({ error: "Missing prompt or name" });
@@ -8,7 +15,7 @@ export default async function handler(req, res) {
 
     const VOICE_ID = "wFOtYWBAKv6z33WjceQa";
 
-    const elevenResponse = await fetch(
+    const response = await fetch(
       `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`,
       {
         method: "POST",
@@ -18,23 +25,29 @@ export default async function handler(req, res) {
           "Accept": "audio/mpeg"
         },
         body: JSON.stringify({
-          text: `Sing a happy Afrobeats song for ${name}. ${prompt}. Use Nigerian accent and emotional melodic Afrobeats singing.`,
-          model_id: "eleven_multilingual_v2"
+          text: `Sing a happy Afrobeats song for ${name}. ${prompt}. Use Nigerian accent, emotional singing, melodic Afrobeats style.`,
+          model_id: "eleven_multilingual_v2",
+          voice_settings: {
+            stability: 0.4,
+            similarity_boost: 0.9,
+            style: 0.7,
+            use_speaker_boost: true
+          }
         })
       }
     );
 
-    if (!elevenResponse.ok) {
-      const errText = await elevenResponse.text();
-      return res.status(500).json({ error: errText });
+    if (!response.ok) {
+      const error = await response.text();
+      return res.status(500).json({ error });
     }
 
-    const audioBuffer = await elevenResponse.arrayBuffer();
+    const audioBuffer = await response.arrayBuffer();
 
     res.setHeader("Content-Type", "audio/mpeg");
     res.send(Buffer.from(audioBuffer));
 
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 }
