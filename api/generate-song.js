@@ -2,8 +2,14 @@ export default async function handler(req, res) {
   try {
     const { prompt, name } = req.body;
 
+    if (!prompt || !name) {
+      return res.status(400).json({ error: "Missing prompt or name" });
+    }
+
+    const VOICE_ID = "auq43ws1oslv0tO4BDa7";
+
     const response = await fetch(
-      "https://api.elevenlabs.io/v1/text-to-speech",
+      `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`,
       {
         method: "POST",
         headers: {
@@ -11,8 +17,14 @@ export default async function handler(req, res) {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          text: `Sing an Afrobeats song mentioning ${name}. ${prompt}`,
-          model_id: "eleven_multilingual_v2"
+          text: `Sing an emotional Afrobeats song for ${name}. ${prompt}. Use Nigerian accent, musical melody, and expressive singing style.`,
+          model_id: "eleven_multilingual_v2",
+          voice_settings: {
+            stability: 0.35,
+            similarity_boost: 0.85,
+            style: 0.9,
+            use_speaker_boost: true
+          }
         })
       }
     );
