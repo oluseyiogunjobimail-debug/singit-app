@@ -6,7 +6,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Missing prompt or name" });
     }
 
-    const VOICE_ID = "auq43ws1oslv0t04BDa7";
+    const VOICE_ID = "PASTE_NEW_VOICE_ID_HERE";
 
     const elevenResponse = await fetch(
       `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`,
