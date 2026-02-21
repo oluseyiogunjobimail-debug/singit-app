@@ -6,70 +6,65 @@
 <style>
 
 body {
-  margin:0;
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  height:100vh;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background: linear-gradient(-45deg,#0f2027,#203a43,#2c5364,#6a11cb,#2575fc);
-  background-size: 400% 400%;
-  animation: gradientMove 15s ease infinite;
+margin:0;
+font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+height:100vh;
+display:flex;
+align-items:center;
+justify-content:center;
+
+background: linear-gradient(-45deg,#0f2027,#203a43,#2c5364,#6a11cb,#2575fc);
+background-size:400% 400%;
+animation:gradientMove 15s ease infinite;
 }
 
 @keyframes gradientMove {
-  0% {background-position:0% 50%;}
-  50% {background-position:100% 50%;}
-  100% {background-position:0% 50%;}
+0% {background-position:0% 50%;}
+50% {background-position:100% 50%;}
+100% {background-position:0% 50%;}
 }
 
 .card {
-  background: rgba(255,255,255,0.08);
-  backdrop-filter: blur(20px);
-  padding:40px;
-  border-radius:20px;
-  width:350px;
-  text-align:center;
-  color:white;
-  box-shadow:0 10px 40px rgba(0,0,0,0.4);
+background: rgba(255,255,255,0.08);
+backdrop-filter: blur(20px);
+padding:40px;
+border-radius:20px;
+width:350px;
+text-align:center;
+color:white;
+box-shadow:0 10px 40px rgba(0,0,0,0.4);
 }
 
 input {
-  width:100%;
-  padding:12px;
-  margin:10px 0;
-  border-radius:8px;
-  border:none;
-  outline:none;
+width:100%;
+padding:12px;
+margin:10px 0;
+border-radius:8px;
+border:none;
+outline:none;
 }
 
 button {
-  width:100%;
-  padding:14px;
-  margin-top:15px;
-  border:none;
-  border-radius:10px;
-  font-size:16px;
-  font-weight:bold;
-  color:white;
-  cursor:pointer;
-  background: linear-gradient(90deg,#ff00cc,#3333ff);
-  transition: 0.3s;
+width:100%;
+padding:14px;
+margin-top:15px;
+border:none;
+border-radius:10px;
+font-size:16px;
+font-weight:bold;
+color:white;
+cursor:pointer;
+background:linear-gradient(90deg,#ff00cc,#3333ff);
 }
 
 button:hover {
-  transform: scale(1.05);
-}
-
-#loading {
-  display:none;
-  margin-top:10px;
+transform:scale(1.05);
 }
 
 audio {
-  margin-top:15px;
-  width:100%;
-  display:none;
+margin-top:15px;
+width:100%;
+display:none;
 }
 
 </style>
@@ -90,8 +85,6 @@ audio {
 
 <button onclick="createSong()">Create Song</button>
 
-<div id="loading">Generating your song...</div>
-
 <audio id="player" controls></audio>
 
 </div>
@@ -100,17 +93,11 @@ audio {
 
 async function createSong() {
 
-const name = document.getElementById("name").value;
-const prompt = document.getElementById("prompt").value;
-const loading = document.getElementById("loading");
-const player = document.getElementById("player");
+const name=document.getElementById("name").value
+const prompt=document.getElementById("prompt").value
+const player=document.getElementById("player")
 
-loading.style.display = "block";
-player.style.display = "none";
-
-try {
-
-const res = await fetch("/api/generate-song", {
+const res=await fetch("/api/generate-song",{
 
 method:"POST",
 
@@ -118,32 +105,22 @@ headers:{
 "Content-Type":"application/json"
 },
 
-body: JSON.stringify({
+body:JSON.stringify({
 name:name,
 prompt:prompt
 })
 
-});
+})
 
-const blob = await res.blob();
+const blob=await res.blob()
 
-const url = URL.createObjectURL(blob);
+const url=URL.createObjectURL(blob)
 
-player.src = url;
+player.src=url
 
-player.style.display = "block";
+player.style.display="block"
 
-player.play();
-
-loading.style.display = "none";
-
-} catch(err){
-
-alert(err.message);
-
-loading.style.display = "none";
-
-}
+player.play()
 
 }
 
