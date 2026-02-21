@@ -1,87 +1,166 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Sing It</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Sing It</title>
+
+<style>
+
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    background: linear-gradient(135deg, #0f2027, #2c5364, #6a11cb);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+}
+
+.container {
+    background: rgba(0,0,0,0.45);
+    padding: 40px;
+    border-radius: 20px;
+    width: 380px;
+    text-align: center;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 0 40px rgba(0,0,0,0.4);
+}
+
+.logo {
+    font-size: 32px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    opacity: 0.8;
+    margin-bottom: 25px;
+}
+
+input {
+    width: 100%;
+    padding: 14px;
+    margin-bottom: 15px;
+    border-radius: 10px;
+    border: none;
+    font-size: 16px;
+}
+
+button {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 12px;
+    font-size: 18px;
+    font-weight: bold;
+    background: linear-gradient(90deg,#ff00cc,#3333ff);
+    color: white;
+    cursor: pointer;
+}
+
+button:hover {
+    opacity: 0.9;
+}
+
+audio {
+    margin-top: 20px;
+    width: 100%;
+    display: none;
+}
+
+.status {
+    margin-top: 15px;
+    opacity: 0.8;
+}
+
+</style>
 </head>
 
-<body style="font-family: Arial; text-align: center; margin-top: 50px;">
+<body>
 
-<h1>Sing It</h1>
-<p>Create Nigerian AI songs with your name</p>
+<div class="container">
 
-<input 
-  id="name"
-  placeholder="Enter your name"
-  style="padding:10px; width:300px; margin:10px;"
-/>
+<div class="logo">Sing It ✨</div>
 
-<br>
+<div class="subtitle">
+Create Nigerian AI songs with your name
+</div>
 
-<input 
-  id="prompt"
-  placeholder="Describe your song"
-  style="padding:10px; width:300px; margin:10px;"
-/>
+<input id="name" placeholder="Your name">
 
-<br>
+<input id="prompt" placeholder="Song description">
 
-<button onclick="createSong()" style="padding:15px 30px; font-size:16px;">
+<button onclick="createSong()">
 Create Song
 </button>
 
-<br><br>
+<div class="status" id="status"></div>
 
-<audio id="player" controls style="display:none;"></audio>
+<audio id="player" controls></audio>
+
+</div>
 
 <script>
 
 async function createSong() {
 
-  const name = document.getElementById("name").value;
-  const prompt = document.getElementById("prompt").value;
+const name = document.getElementById("name").value;
+const prompt = document.getElementById("prompt").value;
+const status = document.getElementById("status");
+const player = document.getElementById("player");
 
-  if (!name || !prompt) {
-    alert("Enter name and prompt");
-    return;
-  }
+if (!name || !prompt) {
+status.innerText = "Enter name and description";
+return;
+}
 
-  try {
+status.innerText = "Creating your song...";
 
-    const res = await fetch("/api/generate-song", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        name,
-        prompt
-      })
-    });
+try {
 
-    if (!res.ok) {
-      const text = await res.text();
-      alert(text);
-      return;
-    }
+const res = await fetch("/api/generate-song", {
+method: "POST",
+headers: {
+"Content-Type": "application/json"
+},
+body: JSON.stringify({
+name,
+prompt
+})
+});
 
-    const arrayBuffer = await res.arrayBuffer();
-    const blob = new Blob([arrayBuffer], { type: "audio/mpeg" });
+if (!res.ok) {
 
-    const url = URL.createObjectURL(blob);
+const text = await res.text();
+status.innerText = text;
+return;
 
-    const player = document.getElementById("player");
+}
 
-    player.src = url;
-    player.style.display = "block";
+const buffer = await res.arrayBuffer();
 
-    player.play();
+const blob = new Blob([buffer], { type: "audio/mpeg" });
 
-  } catch (err) {
+const url = URL.createObjectURL(blob);
 
-    alert(err.message);
+player.src = url;
 
-  }
+player.style.display = "block";
+
+player.play();
+
+status.innerText = "Song created successfully";
+
+}
+
+catch (err) {
+
+status.innerText = err.message;
+
+}
 
 }
 
