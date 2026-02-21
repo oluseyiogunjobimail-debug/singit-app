@@ -1,17 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Sing It</title>
-
 <style>
 
 body {
     margin: 0;
     font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    background: linear-gradient(135deg, #0f2027, #2c5364, #6a11cb);
+
+    background:
+    radial-gradient(circle at 20% 20%, #ff00cc55, transparent 40%),
+    radial-gradient(circle at 80% 80%, #3333ff55, transparent 40%),
+    linear-gradient(135deg, #0f2027, #2c5364, #6a11cb);
+
     height: 100vh;
     display: flex;
     justify-content: center;
@@ -20,151 +17,113 @@ body {
 }
 
 .container {
-    background: rgba(0,0,0,0.45);
+
+    background: rgba(10,15,30,0.65);
+
     padding: 40px;
+
     border-radius: 20px;
+
     width: 380px;
+
     text-align: center;
-    backdrop-filter: blur(20px);
-    box-shadow: 0 0 40px rgba(0,0,0,0.4);
+
+    backdrop-filter: blur(25px);
+
+    box-shadow:
+
+    0 0 60px rgba(255,0,200,0.25),
+
+    0 0 120px rgba(50,50,255,0.15);
+
 }
 
 .logo {
-    font-size: 32px;
+
+    font-size: 34px;
+
     font-weight: bold;
+
     margin-bottom: 10px;
+
 }
 
 .subtitle {
-    opacity: 0.8;
+
+    opacity: 0.85;
+
     margin-bottom: 25px;
+
 }
 
 input {
+
     width: 100%;
+
     padding: 14px;
+
     margin-bottom: 15px;
-    border-radius: 10px;
+
+    border-radius: 12px;
+
     border: none;
+
     font-size: 16px;
+
+    background: rgba(255,255,255,0.9);
+
 }
 
 button {
+
     width: 100%;
+
     padding: 15px;
+
     border: none;
-    border-radius: 12px;
+
+    border-radius: 14px;
+
     font-size: 18px;
+
     font-weight: bold;
-    background: linear-gradient(90deg,#ff00cc,#3333ff);
+
+    background: linear-gradient(90deg,#ff00cc,#7b00ff,#3333ff);
+
     color: white;
+
     cursor: pointer;
+
+    box-shadow:
+
+    0 0 20px #ff00cc88,
+
+    0 0 40px #3333ff66;
+
 }
 
 button:hover {
-    opacity: 0.9;
+
+    transform: scale(1.03);
+
 }
 
 audio {
+
     margin-top: 20px;
+
     width: 100%;
+
     display: none;
+
 }
 
 .status {
+
     margin-top: 15px;
-    opacity: 0.8;
+
+    opacity: 0.9;
+
 }
 
 </style>
-</head>
-
-<body>
-
-<div class="container">
-
-<div class="logo">Sing It ✨</div>
-
-<div class="subtitle">
-Create Nigerian AI songs with your name
-</div>
-
-<input id="name" placeholder="Your name">
-
-<input id="prompt" placeholder="Song description">
-
-<button onclick="createSong()">
-Create Song
-</button>
-
-<div class="status" id="status"></div>
-
-<audio id="player" controls></audio>
-
-</div>
-
-<script>
-
-async function createSong() {
-
-const name = document.getElementById("name").value;
-const prompt = document.getElementById("prompt").value;
-const status = document.getElementById("status");
-const player = document.getElementById("player");
-
-if (!name || !prompt) {
-status.innerText = "Enter name and description";
-return;
-}
-
-status.innerText = "Creating your song...";
-
-try {
-
-const res = await fetch("/api/generate-song", {
-method: "POST",
-headers: {
-"Content-Type": "application/json"
-},
-body: JSON.stringify({
-name,
-prompt
-})
-});
-
-if (!res.ok) {
-
-const text = await res.text();
-status.innerText = text;
-return;
-
-}
-
-const buffer = await res.arrayBuffer();
-
-const blob = new Blob([buffer], { type: "audio/mpeg" });
-
-const url = URL.createObjectURL(blob);
-
-player.src = url;
-
-player.style.display = "block";
-
-player.play();
-
-status.innerText = "Song created successfully";
-
-}
-
-catch (err) {
-
-status.innerText = err.message;
-
-}
-
-}
-
-</script>
-
-</body>
-</html>
