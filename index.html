@@ -1,66 +1,50 @@
-<body style="font-family: Arial; text-align: center; padding-top: 50px; background: linear-gradient(135deg,#0f2027,#203a43,#2c5364); color:white;">
-
-<h1>Sing It</h1>
-<p>Create Nigerian AI songs with your name</p>
-
-<input id="name" placeholder="Enter your name"
-style="width:300px;padding:10px;margin:10px;border-radius:6px;border:none;" />
-
-<br>
-
-<input id="prompt" placeholder="Describe your song"
-style="width:300px;padding:10px;margin:10px;border-radius:6px;border:none;" />
-
-<br><br>
-
-<button onclick="createSong()"
-style="padding:15px 30px;font-size:18px;background:#ffd700;border:none;border-radius:8px;cursor:pointer;">
-Create Song
-</button>
-
-<br><br>
-
-<audio id="player" controls style="display:none;"></audio>
-
 <script>
 async function createSong() {
 
   const name = document.getElementById("name").value;
   const prompt = document.getElementById("prompt").value;
 
-  const res = await fetch("/api/generate-song", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      name: name,
-      prompt: prompt
-    })
-  });
-
-  if (!res.ok) {
-    alert("Error generating song");
+  if (!name || !prompt) {
+    alert("Enter name and prompt");
     return;
   }
 
-  const arrayBuffer = await res.arrayBuffer();
+  try {
 
-const blob = new Blob([arrayBuffer], { type: "audio/mpeg" });
+    const res = await fetch("https://singitng.com/api/generate-song", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        name: name,
+        prompt: prompt
+      })
+    });
 
-const url = URL.createObjectURL(blob);
+    if (!res.ok) {
+      const text = await res.text();
+      alert("Error: " + text);
+      return;
+    }
 
-const player = document.getElementById("player");
+    const arrayBuffer = await res.arrayBuffer();
+    const blob = new Blob([arrayBuffer], { type: "audio/mpeg" });
 
-player.pause();
-player.src = "";
-player.load();
+    const url = URL.createObjectURL(blob);
 
-player.src = url;
-player.style.display = "block";
+    const player = document.getElementById("player");
 
-await player.play().catch(() => {});
+    player.src = url;
+    player.style.display = "block";
+
+    player.play();
+
+  } catch (err) {
+
+    alert("Failed: " + err.message);
+
+  }
+
 }
 </script>
-
-</body>
