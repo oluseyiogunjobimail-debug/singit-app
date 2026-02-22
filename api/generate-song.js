@@ -1,58 +1,71 @@
-export default async function handler(req,res){
+export default async function handler(req, res) {
 
-try{
+try {
 
-let body=req.body
-
-if(!body || typeof body==="string"){
-body=JSON.parse(body || "{}")
+if (req.method !== "POST") {
+return res.status(405).json({ error: "Method not allowed" });
 }
 
-const {name,prompt}=body
+let body = req.body;
 
-if(!name || !prompt){
-return res.status(400).json({error:"Missing name or prompt"})
+if (!body || typeof body === "string") {
+body = JSON.parse(body || "{}");
 }
 
-const VOICE_ID="hpp4J3VqNfWAU000d1Us"
+const { name, prompt } = body;
 
-const response=await fetch(
+if (!name || !prompt) {
+return res.status(400).json({ error: "Missing name or prompt" });
+}
+
+/* 🔥 IMPORTANT: PASTE YOUR ELEVENLABS VOICE ID BELOW */
+const VOICE_ID = "PASTE_YOUR_REAL_VOICE_ID_HERE";
+
+/* 🔥 Make sure your ELEVENLABS_API_KEY is set in Vercel environment variables */
+
+const elevenResponse = await fetch(
 `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`,
 {
-method:"POST",
-
-headers:{
-"xi-api-key":process.env.ELEVENLABS_API_KEY,
-"Content-Type":"application/json",
-"Accept":"audio/mpeg"
+method: "POST",
+headers: {
+"xi-api-key": process.env.ELEVENLABS_API_KEY,
+"Content-Type": "application/json",
+"Accept": "audio/mpeg"
 },
-
-body:JSON.stringify({
-text:`Sing a happy Afrobeats song for ${name}. ${prompt}. Use Nigerian accent.`,
-model_id:"eleven_multilingual_v2"
+body: JSON.stringify({
+text: `Sing a happy Afrobeats song for ${name}. ${prompt}. Use Nigerian accent, emotional singing style.`,
+model_id: "eleven_multilingual_v2",
+voice_settings: {
+stability: 0.5,
+similarity_boost: 0.8
+}
 })
-
 }
-)
+);
 
-if(!response.ok){
+if (!elevenResponse.ok) {
 
-const error=await response.text()
+const errorText = await elevenResponse.text();
 
-return res.status(500).json({error})
-
+return res.status(500).json({
+error: "ElevenLabs error",
+details: errorText
+});
 }
 
-const audioBuffer=await response.arrayBuffer()
+const audioBuffer = await elevenResponse.arrayBuffer();
 
-res.setHeader("Content-Type","audio/mpeg")
+res.setHeader("Content-Type", "audio/mpeg");
+res.setHeader("Cache-Control", "no-store");
 
-res.send(Buffer.from(audioBuffer))
+return res.send(Buffer.from(audioBuffer));
 
-}catch(error){
+} catch (err) {
 
-res.status(500).json({error:error.message})
-
+return res.status(500).json({
+error: "Server error",
+message: err.message
+});
 }
 
 }
