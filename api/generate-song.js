@@ -18,10 +18,10 @@ if (!name || !prompt) {
 return res.status(400).json({ error: "Missing name or prompt" });
 }
 
-/* 🔥 IMPORTANT: PASTE YOUR ELEVENLABS VOICE ID BELOW */
-const VOICE_ID = "PASTE_YOUR_REAL_VOICE_ID_HERE";
+/* ✅ Your working ElevenLabs Voice ID */
+const VOICE_ID = "HAvvFKatz0uu0Fv55Riy";
 
-/* 🔥 Make sure your ELEVENLABS_API_KEY is set in Vercel environment variables */
+/* Make sure ELEVENLABS_API_KEY is set in Vercel */
 
 const elevenResponse = await fetch(
 `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`,
