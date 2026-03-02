@@ -20,7 +20,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // STEP 1: Create music generation task
+    // STEP 1: Send generation request
     const generateResponse = await fetch(
       "https://api.sunoapi.org/api/v1/generate",
       {
@@ -30,33 +30,29 @@ export default async function handler(req, res) {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          customMode: true,
-          instrumental: false,
-          model: "V4_5ALL",
-          title: title,
           prompt: lyrics,
-          style: "Afrobeats"
+          title: title,
+          model: "V4",
+          customMode: false
         })
       }
     );
 
     const generateData = await generateResponse.json();
 
+    // If API rejects request, show exact reason
     if (generateData.code !== 200) {
-      return res.status(500).json({
-        error: "Failed to create generation task",
-        details: generateData
-      });
+      return res.status(500).json(generateData);
     }
 
     const taskId = generateData.data.taskId;
 
     // STEP 2: Poll for result
-    let songUrl = null;
     let attempts = 0;
+    let streamUrl = null;
 
-    while (!songUrl && attempts < 20) {
-      await new Promise(resolve => setTimeout(resolve, 5000)); // wait 5 sec
+    while (attempts < 20 && !streamUrl) {
+      await new Promise(resolve => setTimeout(resolve, 5000));
 
       const statusResponse = await fetch(
         `https://api.sunoapi.org/api/v1/generate/record?taskId=${taskId}`,
@@ -69,15 +65,19 @@ export default async function handler(req, res) {
 
       const statusData = await statusResponse.json();
 
-      if (statusData.code === 200 && statusData.data?.status === "SUCCESS") {
-        songUrl = statusData.data.streamUrl;
+      if (
+        statusData.code === 200 &&
+        statusData.data &&
+        statusData.data.status === "SUCCESS"
+      ) {
+        streamUrl = statusData.data.streamUrl;
         break;
       }
 
       attempts++;
     }
 
-    if (!songUrl) {
+    if (!streamUrl) {
       return res.status(500).json({
         error: "Song generation timed out"
       });
@@ -85,7 +85,7 @@ export default async function handler(req, res) {
 
     return res.status(200).json({
       success: true,
-      streamUrl: songUrl
+      streamUrl
     });
 
   } catch (error) {
