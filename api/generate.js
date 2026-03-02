@@ -4,11 +4,11 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { lyrics, title } = req.body;
+    const { title, lyrics } = req.body;
 
-    if (!lyrics || !title) {
+    if (!title || !lyrics) {
       return res.status(400).json({
-        error: "Lyrics and title are required",
+        error: "Title and lyrics are required"
       });
     }
 
@@ -16,40 +16,82 @@ export default async function handler(req, res) {
 
     if (!API_KEY) {
       return res.status(500).json({
-        error: "Missing SUNO_API_KEY",
+        error: "Missing SUNO_API_KEY"
       });
     }
 
-    // 🔥 Send request to Suno API
-    const sunoResponse = await fetch("https://api.sunoapi.org/api/v1/generate", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${API_KEY}`
-      },
-      body: JSON.stringify({
-        title: title,
-        prompt: lyrics,
-        style: "Afrobeats, Nigerian, modern, high quality vocals"
-      })
-    });
+    // STEP 1: Create music generation task
+    const generateResponse = await fetch(
+      "https://api.sunoapi.org/api/v1/generate",
+      {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${API_KEY}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          customMode: true,
+          instrumental: false,
+          model: "V4_5ALL",
+          title: title,
+          prompt: lyrics,
+          style: "Afrobeats"
+        })
+      }
+    );
 
-    const sunoData = await sunoResponse.json();
+    const generateData = await generateResponse.json();
 
-    if (!sunoResponse.ok) {
+    if (generateData.code !== 200) {
       return res.status(500).json({
-        error: sunoData.message || "Suno generation failed"
+        error: "Failed to create generation task",
+        details: generateData
+      });
+    }
+
+    const taskId = generateData.data.taskId;
+
+    // STEP 2: Poll for result
+    let songUrl = null;
+    let attempts = 0;
+
+    while (!songUrl && attempts < 20) {
+      await new Promise(resolve => setTimeout(resolve, 5000)); // wait 5 sec
+
+      const statusResponse = await fetch(
+        `https://api.sunoapi.org/api/v1/generate/record?taskId=${taskId}`,
+        {
+          headers: {
+            "Authorization": `Bearer ${API_KEY}`
+          }
+        }
+      );
+
+      const statusData = await statusResponse.json();
+
+      if (statusData.code === 200 && statusData.data?.status === "SUCCESS") {
+        songUrl = statusData.data.streamUrl;
+        break;
+      }
+
+      attempts++;
+    }
+
+    if (!songUrl) {
+      return res.status(500).json({
+        error: "Song generation timed out"
       });
     }
 
     return res.status(200).json({
       success: true,
-      data: sunoData
+      streamUrl: songUrl
     });
 
   } catch (error) {
     return res.status(500).json({
       error: "Internal server error",
+      details: error.message
     });
   }
 }
