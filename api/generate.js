@@ -20,7 +20,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // STEP 1 — Create task
+    // 1️⃣ Create generation task
     const generateResponse = await fetch(
       "https://api.sunoapi.org/api/v1/generate",
       {
@@ -43,7 +43,7 @@ export default async function handler(req, res) {
     const generateData = await generateResponse.json();
 
     if (!generateResponse.ok) {
-      return res.status(500).json(generateData);
+      return res.status(generateResponse.status).json(generateData);
     }
 
     if (!generateData.data || !generateData.data.taskId) {
@@ -52,7 +52,7 @@ export default async function handler(req, res) {
 
     const taskId = generateData.data.taskId;
 
-    // STEP 2 — Poll for result
+    // 2️⃣ Poll for result
     let streamUrl = null;
     let attempts = 0;
 
