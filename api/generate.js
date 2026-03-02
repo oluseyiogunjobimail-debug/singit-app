@@ -1,97 +1,142 @@
-export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sing It ✨</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(255,0,150,0.25), transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(0,200,255,0.25), transparent 40%),
+    linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+}
+
+.card {
+  background: rgba(255,255,255,0.05);
+  padding: 30px;
+  border-radius: 20px;
+  width: 350px;
+  backdrop-filter: blur(15px);
+  text-align: center;
+  color: white;
+}
+
+input, textarea {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 12px;
+  border-radius: 10px;
+  border: none;
+  outline: none;
+  font-size: 14px;
+}
+
+textarea {
+  height: 80px;
+  resize: none;
+}
+
+button {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  background: linear-gradient(90deg, #ff416c, #ff4b2b);
+  color: white;
+}
+
+button:disabled {
+  opacity: 0.6;
+}
+
+#status {
+  margin-top: 15px;
+  font-size: 14px;
+}
+
+audio {
+  margin-top: 15px;
+  width: 100%;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+  <h2>Sing It ✨</h2>
+  <p>Create Nigerian AI songs</p>
+
+  <input id="title" placeholder="Song title" />
+  <textarea id="lyrics" placeholder="Write lyrics here..."></textarea>
+
+  <button id="btn" onclick="createSong()">Create Song</button>
+
+  <p id="status"></p>
+  <div id="player"></div>
+</div>
+
+<script>
+async function createSong() {
+  const title = document.getElementById("title").value;
+  const lyrics = document.getElementById("lyrics").value;
+  const status = document.getElementById("status");
+  const button = document.getElementById("btn");
+  const playerDiv = document.getElementById("player");
+
+  playerDiv.innerHTML = "";
+
+  if (!title || !lyrics) {
+    status.innerText = "Please enter title and lyrics.";
+    return;
   }
+
+  button.disabled = true;
+  status.innerText = "Creating song... please wait.";
 
   try {
-    const { title, lyrics } = req.body;
-
-    if (!title || !lyrics) {
-      return res.status(400).json({
-        error: "Title and lyrics are required"
-      });
-    }
-
-    const API_KEY = process.env.SUNO_API_KEY;
-
-    if (!API_KEY) {
-      return res.status(500).json({
-        error: "Missing SUNO_API_KEY"
-      });
-    }
-
-    // STEP 1: Send generation request
-    const generateResponse = await fetch(
-      "https://api.sunoapi.org/api/v1/generate",
-      {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${API_KEY}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          prompt: lyrics,
-          title: title,
-          model: "V4",
-          customMode: false
-        })
-      }
-    );
-
-    const generateData = await generateResponse.json();
-
-    // If API rejects request, show exact reason
-    if (generateData.code !== 200) {
-      return res.status(500).json(generateData);
-    }
-
-    const taskId = generateData.data.taskId;
-
-    // STEP 2: Poll for result
-    let attempts = 0;
-    let streamUrl = null;
-
-    while (attempts < 20 && !streamUrl) {
-      await new Promise(resolve => setTimeout(resolve, 5000));
-
-      const statusResponse = await fetch(
-        `https://api.sunoapi.org/api/v1/generate/record?taskId=${taskId}`,
-        {
-          headers: {
-            "Authorization": `Bearer ${API_KEY}`
-          }
-        }
-      );
-
-      const statusData = await statusResponse.json();
-
-      if (
-        statusData.code === 200 &&
-        statusData.data &&
-        statusData.data.status === "SUCCESS"
-      ) {
-        streamUrl = statusData.data.streamUrl;
-        break;
-      }
-
-      attempts++;
-    }
-
-    if (!streamUrl) {
-      return res.status(500).json({
-        error: "Song generation timed out"
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      streamUrl
+    const response = await fetch("/api/generate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ title, lyrics })
     });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      status.innerText = "Error: " + JSON.stringify(data);
+      button.disabled = false;
+      return;
+    }
+
+    status.innerText = "Song generated successfully!";
+
+    const audio = document.createElement("audio");
+    audio.controls = true;
+    audio.src = data.streamUrl;
+
+    playerDiv.appendChild(audio);
 
   } catch (error) {
-    return res.status(500).json({
-      error: "Internal server error",
-      details: error.message
-    });
+    status.innerText = "Error: " + error.message;
   }
+
+  button.disabled = false;
 }
+</script>
+
+</body>
+</html>
