@@ -23,7 +23,7 @@ body {
   background: rgba(255,255,255,0.05);
   padding: 30px;
   border-radius: 20px;
-  width: 350px;
+  width: 360px;
   backdrop-filter: blur(15px);
   text-align: center;
   color: white;
@@ -40,7 +40,7 @@ input, textarea {
 }
 
 textarea {
-  height: 80px;
+  height: 90px;
   resize: none;
 }
 
@@ -108,9 +108,7 @@ async function createSong() {
   try {
     const response = await fetch("/api/generate", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title, lyrics })
     });
 
