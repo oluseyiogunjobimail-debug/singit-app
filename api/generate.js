@@ -20,6 +20,9 @@ export default async function handler(req, res) {
       });
     }
 
+    // 🔥 IMPORTANT: Replace this with your real Vercel domain
+    const CALLBACK_URL = "https://mail-5400s-projects.vercel.app/api/callback";
+
     // 1️⃣ Create generation task
     const generateResponse = await fetch(
       "https://api.sunoapi.org/api/v1/generate",
@@ -33,6 +36,7 @@ export default async function handler(req, res) {
           customMode: true,
           instrumental: false,
           model: "V4_5ALL",
+          callBackUrl: CALLBACK_URL,
           title: title,
           prompt: lyrics,
           style: "Afrobeats"
