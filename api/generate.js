@@ -7,29 +7,24 @@ export default async function handler(req, res) {
     const { title, lyrics } = req.body;
 
     if (!title || !lyrics) {
-      return res.status(400).json({
-        error: "Title and lyrics are required"
-      });
+      return res.status(400).json({ error: "Title and lyrics are required" });
     }
 
     const API_KEY = process.env.SUNO_API_KEY;
 
     if (!API_KEY) {
-      return res.status(500).json({
-        error: "Missing SUNO_API_KEY"
-      });
+      return res.status(500).json({ error: "Missing SUNO_API_KEY" });
     }
 
-    // 🔥 IMPORTANT: Replace this with your real Vercel domain
     const CALLBACK_URL = "https://mail-5400s-projects.vercel.app/api/callback";
 
-    // 1️⃣ Create generation task
-    const generateResponse = await fetch(
+    // STEP 1: Create generation task
+    const createResponse = await fetch(
       "https://api.sunoapi.org/api/v1/generate",
       {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${API_KEY}`,
+          Authorization: `Bearer ${API_KEY}`,
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
@@ -44,43 +39,57 @@ export default async function handler(req, res) {
       }
     );
 
-    const generateData = await generateResponse.json();
+    const createData = await createResponse.json();
 
-    if (!generateResponse.ok) {
-      return res.status(generateResponse.status).json(generateData);
+    if (!createResponse.ok) {
+      return res.status(createResponse.status).json(createData);
     }
 
-    if (!generateData.data || !generateData.data.taskId) {
-      return res.status(500).json(generateData);
+    const taskId = createData?.data?.taskId;
+
+    if (!taskId) {
+      return res.status(500).json(createData);
     }
 
-    const taskId = generateData.data.taskId;
-
-    // 2️⃣ Poll for result
+    // STEP 2: Poll for result
     let streamUrl = null;
     let attempts = 0;
 
-    while (!streamUrl && attempts < 20) {
-      await new Promise(r => setTimeout(r, 5000));
+    while (!streamUrl && attempts < 25) {
+      await new Promise(r => setTimeout(r, 4000));
 
       const statusResponse = await fetch(
         `https://api.sunoapi.org/api/v1/generate/record?taskId=${taskId}`,
         {
-          headers: {
-            "Authorization": `Bearer ${API_KEY}`
-          }
+          headers: { Authorization: `Bearer ${API_KEY}` }
         }
       );
 
       const statusData = await statusResponse.json();
 
-      if (
-        statusData.code === 200 &&
-        statusData.data &&
-        statusData.data.status === "SUCCESS"
-      ) {
-        streamUrl = statusData.data.streamUrl;
-        break;
+      if (statusData.code === 200 && statusData.data) {
+
+        if (Array.isArray(statusData.data)) {
+          const first = statusData.data[0];
+          if (first?.streamUrl) {
+            streamUrl = first.streamUrl;
+            break;
+          }
+          if (first?.audioUrl) {
+            streamUrl = first.audioUrl;
+            break;
+          }
+        }
+
+        if (statusData.data.streamUrl) {
+          streamUrl = statusData.data.streamUrl;
+          break;
+        }
+
+        if (statusData.data.audioUrl) {
+          streamUrl = statusData.data.audioUrl;
+          break;
+        }
       }
 
       attempts++;
@@ -88,7 +97,7 @@ export default async function handler(req, res) {
 
     if (!streamUrl) {
       return res.status(500).json({
-        error: "Song generation timed out"
+        error: "Song generation timed out or still processing."
       });
     }
 
